@@ -7,16 +7,16 @@
   Basic hash table key/value pair
  ****/
 typedef struct Pair {
-  char *key;
-  char *value;
+	char *key;
+	char *value;
 } Pair;
 
 /****
   Basic hash table
  ****/
 typedef struct BasicHashTable {
-  int capacity;
-  Pair **storage;
+	int capacity;
+	Pair **storage;
 } BasicHashTable;
 
 /****
@@ -24,11 +24,11 @@ typedef struct BasicHashTable {
  ****/
 Pair *create_pair(char *key, char *value)
 {
-  Pair *pair = malloc(sizeof(Pair));
-  pair->key = strdup(key);
-  pair->value = strdup(value);
+	Pair *pair = malloc(sizeof(Pair));
+	pair->key = strdup(key);
+	pair->value = strdup(value);
 
-  return pair;
+	return pair;
 }
 
 /****
@@ -36,11 +36,11 @@ Pair *create_pair(char *key, char *value)
  ****/
 void destroy_pair(Pair *pair)
 {
-  if (pair != NULL) {
-    free(pair->key);
-    free(pair->value);
-    free(pair);
-  }
+	if (pair != NULL) {
+		free(pair->key);
+		free(pair->value);
+		free(pair);
+	}
 }
 
 /****
@@ -50,15 +50,15 @@ void destroy_pair(Pair *pair)
  ****/
 unsigned int hash(char *str, int max)
 {
-  unsigned long hash = 5381;
-  int c;
-  unsigned char * u_str = (unsigned char *)str;
+	unsigned long hash = 5381;
+	int c;
+	unsigned char * u_str = (unsigned char *)str;
 
-  while ((c = *u_str++)) {
-    hash = ((hash << 5) + hash) + c;
-  }
+	while ((c = *u_str++)) {
+		hash = ((hash << 5) + hash) + c;
+	}
 
-  return hash % max;
+	return hash % max;
 }
 
 
@@ -70,11 +70,11 @@ unsigned int hash(char *str, int max)
  ****/
 BasicHashTable *create_hash_table(int capacity)
 {
-  BasicHashTable *ht;
-  ht = malloc(sizeof(BasicHashTable));
-  ht->capacity = capacity;
-  ht->storage = calloc((size_t)ht->capacity, sizeof(Pair*));
-  return ht;
+	BasicHashTable *ht;
+	ht = malloc(sizeof(BasicHashTable));
+	ht->capacity = capacity;
+	ht->storage = calloc((size_t)ht->capacity, sizeof(Pair*));
+	return ht;
 }
 
 /****
@@ -86,8 +86,9 @@ BasicHashTable *create_hash_table(int capacity)
  ****/
 void hash_table_insert(BasicHashTable *ht, char *key, char *value)
 {
-  Pair* pair = create_pair(key, value);
-  ht->storage[0] = pair;
+	Pair* pair = create_pair(key, value);
+	int index = hash(key, ht->capacity);
+	ht->storage[index] = pair;
 }
 
 /****
@@ -97,7 +98,9 @@ void hash_table_insert(BasicHashTable *ht, char *key, char *value)
  ****/
 void hash_table_remove(BasicHashTable *ht, char *key)
 {
-
+	int index = hash(key, ht->capacity);
+	destroy_pair(ht->storage[index]);
+	ht->storage[index] = NULL;
 }
 
 /****
@@ -107,7 +110,12 @@ void hash_table_remove(BasicHashTable *ht, char *key)
  ****/
 char *hash_table_retrieve(BasicHashTable *ht, char *key)
 {
-  return NULL;
+	int index = hash(key, ht->capacity);
+	if (ht->storage[index] != NULL){
+		char* value = ht->storage[index]->value;
+		if (value != NULL) return value;
+	}
+	return NULL;
 }
 
 /****
@@ -117,29 +125,30 @@ char *hash_table_retrieve(BasicHashTable *ht, char *key)
  ****/
 void destroy_hash_table(BasicHashTable *ht)
 {
-
+	free(ht->storage);
+	free(ht);
 }
 
 
 #ifndef TESTING
 int main(void)
 {
-  struct BasicHashTable *ht = create_hash_table(16);
+	struct BasicHashTable *ht = create_hash_table(16);
 
-  hash_table_insert(ht, "line", "Here today...\n");
+	hash_table_insert(ht, "line", "Here today...\n");
 
-  printf("%s", hash_table_retrieve(ht, "line"));
+	printf("%s", hash_table_retrieve(ht, "line"));
 
-  hash_table_remove(ht, "line");
+	hash_table_remove(ht, "line");
 
-  if (hash_table_retrieve(ht, "line") == NULL) {
-    printf("...gone tomorrow. (success)\n");
-  } else {
-    fprintf(stderr, "ERROR: STILL HERE\n");
-  }
+	if (hash_table_retrieve(ht, "line") == NULL) {
+		printf("...gone tomorrow. (success)\n");
+	} else {
+		fprintf(stderr, "ERROR: STILL HERE\n");
+	}
 
-  destroy_hash_table(ht);
+	destroy_hash_table(ht);
 
-  return 0;
+	return 0;
 }
 #endif
